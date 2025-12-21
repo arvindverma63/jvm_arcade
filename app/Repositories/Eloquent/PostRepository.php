@@ -19,6 +19,7 @@ class PostRepository extends BaseRepository implements PostRepositoryInterface
         return $this->model->with(['user.profile', 'tags'])
                            ->latest()
                            ->paginate($perPage);
+
     }
 
     public function findBySlug(string $slug)
