@@ -8,12 +8,32 @@ class Snippet extends Model
 {
     protected $fillable = ['user_id', 'title', 'slug', 'code', 'description', 'language', 'likes_count'];
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
     // Polymorphic relationship for tags
-    public function tags() {
+    public function tags()
+    {
         return $this->morphToMany(Tag::class, 'taggable');
+    }
+    // In app/Models/Snippet.php
+
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
+    // In App\Models\Snippet.php (and Post.php, Comment.php)
+    public function likes()
+    {
+        return $this->morphMany(\App\Models\Like::class, 'likeable');
+    }
+
+    // Helper to check if current user liked it
+    public function isLikedBy($user)
+    {
+        if (!$user) return false;
+        return $this->likes()->where('user_id', $user->id)->exists();
     }
 }

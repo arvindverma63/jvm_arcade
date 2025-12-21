@@ -3,24 +3,39 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\Interfaces\PostRepositoryInterface;
+use App\Repositories\Interfaces\SnippetRepositoryInterface;
 use Illuminate\Http\Request;
 
 class PageController extends Controller
 {
     protected $postRepository;
+    protected $snippetRepository; // Add property
 
-    // Dependency Injection
-    public function __construct(PostRepositoryInterface $postRepository)
-    {
+    // Inject both repositories
+    public function __construct(
+        PostRepositoryInterface $postRepository,
+        SnippetRepositoryInterface $snippetRepository
+    ) {
         $this->postRepository = $postRepository;
+        $this->snippetRepository = $snippetRepository;
     }
 
     public function home()
     {
-        // Use the repository method
-        $posts = $this->postRepository->getFeed();
+        // 1. Fetch Posts (Paginator)
+        $posts = $this->postRepository->getFeed(10);
 
-        return view('welcome', compact('posts'));
+        // 2. Fetch Latest Snippets (Collection)
+        $snippets = $this->snippetRepository->getLatest(10);
+
+        $feed = collect($posts->items())
+            ->merge($snippets)
+            ->sortByDesc('created_at');
+
+        return view('welcome', [
+            'feed' => $feed,
+            'posts' => $posts
+        ]);
     }
 
     public function latest()

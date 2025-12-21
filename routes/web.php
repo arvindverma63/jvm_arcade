@@ -3,6 +3,11 @@
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ConnectionController;
+use App\Http\Controllers\LikeController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SnippetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,4 +64,40 @@ Route::middleware(['auth'])->prefix('profile')->name('profile.')->group(function
     Route::get('/', [PageController::class, 'profileOverview'])->name('overview'); // Default /profile
     Route::get('/notifications', [PageController::class, 'profileNotifications'])->name('notifications');
     Route::get('/snippets', [PageController::class, 'profileSnippets'])->name('snippets');
+});
+
+Route::middleware(['auth'])->group(function () {
+
+    // ... existing logout and profile routes ...
+
+    // Snippet Routes
+    Route::controller(SnippetController::class)->prefix('snippets')->name('snippets.')->group(function () {
+        Route::get('/new', 'create')->name('create'); // URL: /snippets/new
+        Route::post('/store', 'store')->name('store'); // URL: /snippets/store
+        Route::get('/{id}', 'show')->name('show');     // URL: /snippets/1
+    });
+
+    // ... other page controller routes ...
+    Route::post('/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('comments.store');
+    Route::post('/like', [LikeController::class, 'toggle'])->name('like.toggle');
+
+    Route::put('/comments/{id}', [App\Http\Controllers\CommentController::class, 'update'])->name('comments.update');
+    Route::delete('/comments/{id}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
+
+    Route::post('/users/{user}/follow', [ConnectionController::class, 'toggleFollow'])->name('users.follow');
+    Route::post('/users/{user}/block', [ConnectionController::class, 'toggleBlock'])->name('users.block');
+    Route::get('/members', [App\Http\Controllers\MemberController::class, 'index'])->name('members.index');
+    Route::get('/u/{user}', [ProfileController::class, 'show'])->name('profile.show');
+
+
+    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+
+    // Chat Room (using 'user' model binding)
+    Route::get('/messages/{user}', [MessageController::class, 'show'])->name('messages.show');
+
+    // Send Message
+    Route::post('/messages/{user}', [MessageController::class, 'store'])->name('messages.store');
+
+    Route::put('/messages/{message}', [MessageController::class, 'update'])->name('messages.update');
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
 });

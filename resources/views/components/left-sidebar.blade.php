@@ -25,10 +25,9 @@
             Latest
         </a>
 
+        {{-- Tags Link --}}
         @php
             $isTags = request()->routeIs('tags');
-            $activeClass = 'bg-brand-accent/10 text-brand-glow font-medium';
-            $inactiveClass = 'text-slate-400 hover:bg-brand-hover hover:text-slate-100 transition-colors';
         @endphp
 
         <a href="{{ route('tags') }}"
@@ -36,11 +35,23 @@
             <i class="{{ $isTags ? 'ph-fill' : 'ph' }} ph-hash text-lg"></i>
             Tags
         </a>
+
+        {{-- Members Link (NEW) --}}
+        @php
+            $isMembers = request()->routeIs('members.index');
+        @endphp
+
+        <a href="{{ route('members.index') }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ $isMembers ? $activeClass : $inactiveClass }}">
+            <i class="{{ $isMembers ? 'ph-fill' : 'ph' }} ph-users text-lg"></i>
+            Members
+        </a>
+
     </div>
 
     <div class="border-t border-slate-700/50 my-4"></div>
 
-    {{-- Frameworks List (Unchanged) --}}
+    {{-- Frameworks List --}}
     <div>
         <h3 class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Frameworks</h3>
         <div class="space-y-1">
