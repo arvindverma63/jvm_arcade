@@ -25,6 +25,9 @@ class User extends Authenticatable
         'github_id',
         'google_id',
         'avatar',
+        'title',            // New
+        'primary_language', // New
+        'theme',            // New
     ];
 
 
@@ -87,7 +90,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Message::class, 'sender_id');
     }
-
     public function messagesReceived()
     {
         return $this->hasMany(Message::class, 'receiver_id');

@@ -2,32 +2,56 @@
 
     <div x-data="{ activeTab: 'snippets' }">
 
+        {{-- 1. PROFILE HEADER --}}
         <div class="relative mb-8">
+
+            {{-- Banner Image --}}
             <div class="h-64 w-full rounded-2xl overflow-hidden relative group">
                 <img src="{{ $user->banner ?? 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2670&auto=format&fit=crop' }}"
                     class="w-full h-full object-cover">
+
                 <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent opacity-90">
                 </div>
+
+                {{-- Edit Banner Form (Owner Only) --}}
                 @if (Auth::id() === $user->id)
-                    <button
-                        class="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white px-3 py-1.5 rounded-lg text-xs font-bold backdrop-blur-md transition-all opacity-0 group-hover:opacity-100">
-                        <i class="ph-bold ph-camera"></i> Edit Banner
-                    </button>
+                    <form action="{{ route('profile.image.update') }}" method="POST" enctype="multipart/form-data"
+                        class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all z-20">
+                        @csrf
+                        <label
+                            class="bg-black/50 hover:bg-black/70 text-white px-3 py-1.5 rounded-lg text-xs font-bold backdrop-blur-md cursor-pointer flex items-center gap-2 transition-colors">
+                            <i class="ph-bold ph-camera"></i> Edit Banner
+                            <input type="file" name="banner" class="hidden" onchange="this.form.submit()"
+                                accept="image/*">
+                        </label>
+                    </form>
                 @endif
             </div>
 
+            {{-- Info Bar & Avatar --}}
             <div class="px-6 relative -mt-16 flex flex-col md:flex-row items-end md:items-center gap-6">
+
+                {{-- Avatar --}}
                 <div class="relative shrink-0">
                     <img src="{{ $user->avatar ?? 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . $user->name }}"
-                        class="w-32 h-32 rounded-full border-4 border-[#0f172a] shadow-2xl bg-[#0f172a]">
+                        class="w-32 h-32 rounded-full border-4 border-[#0f172a] shadow-2xl bg-[#0f172a] object-cover">
+
+                    {{-- Edit Avatar Form (Owner Only) --}}
                     @if (Auth::id() === $user->id)
-                        <button
-                            class="absolute bottom-1 right-1 bg-brand-accent text-brand-dark p-2 rounded-full shadow-lg hover:bg-white transition-colors">
-                            <i class="ph-bold ph-pencil-simple"></i>
-                        </button>
+                        <form action="{{ route('profile.image.update') }}" method="POST" enctype="multipart/form-data"
+                            class="absolute bottom-1 right-1 z-20">
+                            @csrf
+                            <label
+                                class="bg-brand-accent text-brand-dark p-2 rounded-full shadow-lg hover:bg-white transition-colors cursor-pointer flex items-center justify-center">
+                                <i class="ph-bold ph-pencil-simple"></i>
+                                <input type="file" name="avatar" class="hidden" onchange="this.form.submit()"
+                                    accept="image/*">
+                            </label>
+                        </form>
                     @endif
                 </div>
 
+                {{-- User Text Info --}}
                 <div class="flex-1 pb-2">
                     <h1 class="text-3xl font-bold text-white mb-1">{{ $user->name }}</h1>
                     <p class="text-slate-400 text-sm max-w-xl">{{ $user->bio ?? 'Full Stack Developer.' }}</p>
@@ -37,8 +61,10 @@
                     </div>
                 </div>
 
+                {{-- Action Buttons --}}
                 <div class="flex gap-3 pb-4">
                     @if (Auth::id() !== $user->id)
+                        {{-- Follow Button --}}
                         <button onclick="toggleFollowMember('{{ $user->id }}', this)"
                             class="px-6 py-2 rounded-lg font-bold text-sm transition-all shadow-lg flex items-center gap-2
                             {{ Auth::user()->isFollowing($user) ? 'bg-slate-700 text-slate-300' : 'bg-brand-accent text-brand-dark hover:bg-brand-glow' }}">
@@ -48,12 +74,14 @@
                                 class="btn-text">{{ Auth::user()->isFollowing($user) ? 'Following' : 'Follow' }}</span>
                         </button>
 
+                        {{-- Message Button --}}
                         <a href="{{ route('messages.show', $user->id) }}"
                             class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center justify-center shadow-lg"
                             title="Send Message">
                             <i class="ph-bold ph-chat-circle-text text-lg"></i>
                         </a>
 
+                        {{-- Block Menu --}}
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open"
                                 class="px-3 py-2 h-full rounded-lg bg-slate-800 border border-slate-600 text-slate-400 hover:text-red-400 hover:border-red-500/50 transition-colors">
@@ -69,14 +97,17 @@
                             </div>
                         </div>
                     @else
-                        <button
-                            class="px-6 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white font-bold text-sm hover:bg-slate-700 transition-colors">Edit
-                            Profile</button>
+                        {{-- Edit Profile Link --}}
+                        <a href="{{ route('profile.edit') }}"
+                            class="px-6 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white font-bold text-sm hover:bg-slate-700 transition-colors">
+                            Edit Profile
+                        </a>
                     @endif
                 </div>
             </div>
         </div>
 
+        {{-- 2. TABS --}}
         <div class="border-b border-white/5 mb-8">
             <div class="flex items-center gap-8">
                 <button @click="activeTab = 'snippets'"
@@ -106,6 +137,9 @@
             </div>
         </div>
 
+        {{-- 3. CONTENT AREAS --}}
+
+        {{-- SNIPPETS TAB --}}
         <div x-show="activeTab === 'snippets'" x-transition.opacity>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse($snippets as $snippet)
@@ -121,7 +155,8 @@
                             </div>
                             <h3
                                 class="text-lg font-bold text-white mb-2 group-hover:text-brand-glow transition-colors line-clamp-1">
-                                {{ $snippet->title }}</h3>
+                                {{ $snippet->title }}
+                            </h3>
                             <div
                                 class="bg-[#0d1117] rounded-lg p-3 mb-4 flex-1 border border-white/5 opacity-80 group-hover:opacity-100 transition-opacity">
                                 <pre class="text-[10px] text-slate-400 font-mono line-clamp-4 leading-relaxed">{{ $snippet->code }}</pre>
@@ -143,10 +178,10 @@
             <div class="mt-8">{{ $snippets->links() }}</div>
         </div>
 
+        {{-- ABOUT TAB --}}
         <div x-show="activeTab === 'about'" style="display: none;" x-transition.opacity>
             <div class="bg-brand-card border border-white/5 rounded-xl p-8 max-w-3xl">
                 <h3 class="text-xl font-bold text-white mb-4">About {{ $user->name }}</h3>
-
                 <div class="prose prose-invert max-w-none text-slate-300 mb-8">
                     @if ($user->bio)
                         <p>{{ $user->bio }}</p>
@@ -154,7 +189,6 @@
                         <p class="italic text-slate-500">This user hasn't written a bio yet.</p>
                     @endif
                 </div>
-
                 <div class="grid grid-cols-2 gap-6 border-t border-white/5 pt-6">
                     <div>
                         <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Member Since</h4>
@@ -175,6 +209,7 @@
             </div>
         </div>
 
+        {{-- FOLLOWERS TAB --}}
         <div x-show="activeTab === 'followers'" style="display: none;" x-transition.opacity>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @forelse($followers as $follower)
@@ -191,7 +226,6 @@
                             </a>
                             <p class="text-xs text-slate-500">{{ $follower->followers_count }} Followers</p>
                         </div>
-
                         @if (Auth::id() !== $follower->id)
                             <button onclick="toggleFollowMember('{{ $follower->id }}', this)"
                                 class="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
@@ -211,6 +245,7 @@
 
     </div>
 
+    {{-- SCRIPTS --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script>
@@ -222,11 +257,11 @@
                     _token: "{{ csrf_token() }}"
                 },
                 success: function(res) {
-                    // Update Main Profile Button if it exists
                     const textSpan = btn.querySelector('.btn-text');
                     const icon = btn.querySelector('i');
 
-                    if (textSpan) { // If it's the big main button
+                    // If it's the large profile button
+                    if (textSpan) {
                         if (res.status === 'followed') {
                             btn.className =
                                 "px-6 py-2 rounded-lg font-bold text-sm transition-all shadow-lg flex items-center gap-2 bg-slate-700 text-slate-300";
@@ -238,7 +273,8 @@
                             textSpan.innerText = "Follow";
                             icon.className = "ph-bold ph-user-plus";
                         }
-                    } else { // If it's a small button in the list
+                    } else {
+                        // If it's the small icon button in the list
                         if (res.status === 'followed') {
                             icon.className = "ph-fill ph-check text-green-400";
                         } else {

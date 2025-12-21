@@ -7,7 +7,9 @@ use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnippetController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,11 +73,20 @@ Route::middleware(['auth'])->group(function () {
     // ... existing logout and profile routes ...
 
     // Snippet Routes
-    Route::controller(SnippetController::class)->prefix('snippets')->name('snippets.')->group(function () {
-        Route::get('/new', 'create')->name('create'); // URL: /snippets/new
-        Route::post('/store', 'store')->name('store'); // URL: /snippets/store
-        Route::get('/{id}', 'show')->name('show');     // URL: /snippets/1
-    });
+    Route::controller(SnippetController::class)
+        ->prefix('snippets')
+        ->name('snippets.')
+        ->group(function () {
+
+            Route::get('/new', 'create')->name('create');      // /snippets/new
+            Route::post('/store', 'store')->name('store');     // /snippets/store
+
+            Route::get('/{id}/edit', 'edit')->name('edit');    // /snippets/1/edit
+            Route::put('/{id}', 'update')->name('update');     // /snippets/1
+            Route::delete('/{id}', 'destroy')->name('destroy'); // /snippets/1
+
+            Route::get('/{id}', 'show')->name('show');         // /snippets/1
+        });
 
     // ... other page controller routes ...
     Route::post('/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('comments.store');
@@ -100,4 +111,22 @@ Route::middleware(['auth'])->group(function () {
 
     Route::put('/messages/{message}', [MessageController::class, 'update'])->name('messages.update');
     Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
+
+    Route::get('/search', [SearchController::class, 'index'])->name('search');
+    Route::get('/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');
+
+    Route::prefix('profile')->name('profile.')->group(function () {
+        // My Snippets List
+        Route::get('/snippets', [SnippetController::class, 'index'])->name('snippets'); // Used in sidebar as route('profile.snippets')
+        Route::post('/image', [ProfileController::class, 'updateImage'])->name('image.update');
+        // Settings (Edit Profile)
+        Route::get('/settings', [ProfileController::class, 'edit'])->name('edit');
+        Route::get('/setting', [ProfileController::class, 'edit'])->name('settings');
+        Route::patch('/settings', [ProfileController::class, 'update'])->name('update');
+
+        // Shortcuts
+        Route::get('/', function () {
+            return redirect()->route('profile.show', Auth::id());
+        })->name('overview');
+    });
 });
