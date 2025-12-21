@@ -1,0 +1,46 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('profiles', function (Blueprint $table) {
+            $table->id();
+
+            // FOREIGN KEY: Must match the User ID type (CHAR 36)
+            $table->char('user_id', 36);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
+            // Public Info
+            $table->string('title')->nullable(); // e.g., "Full Stack Wizard"
+            $table->text('bio')->nullable();
+            $table->string('location')->nullable();
+            $table->string('website')->nullable();
+
+            // Preferences
+            $table->string('primary_language')->default('Java'); // Java, Kotlin, Scala
+            $table->string('ide_theme')->default('dark'); // dark, light
+
+            // Visuals & Stats
+            $table->string('banner')->nullable(); // Path to banner image
+            $table->integer('reputation')->default(0);
+
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('profiles');
+    }
+};
