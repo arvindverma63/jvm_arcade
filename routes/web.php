@@ -10,6 +10,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SnippetController;
+use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -121,6 +122,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
     Route::get('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
     Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::get('/tags/search', [TagController::class, 'search']);
 
     Route::prefix('profile')->name('profile.')->group(function () {
         // My Snippets List

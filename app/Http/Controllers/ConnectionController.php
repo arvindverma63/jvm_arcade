@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+// 1. Import the Notification Class
+use App\Notifications\UserActionNotification;
 
 class ConnectionController extends Controller
 {
@@ -17,10 +19,15 @@ class ConnectionController extends Controller
         }
 
         if ($currentUser->isFollowing($user)) {
+            // UNFOLLOW Logic
             $currentUser->following()->detach($user->id);
             $message = 'Unfollowed successfully.';
             $state = 'unfollowed';
+
+            // Note: We typically DO NOT notify a user when they are unfollowed.
         } else {
+            // FOLLOW Logic
+
             // Check if blocked
             if ($user->isBlocked($currentUser)) {
                 return back()->with('error', 'You cannot follow this user.');
@@ -29,6 +36,13 @@ class ConnectionController extends Controller
             $currentUser->following()->attach($user->id);
             $message = 'Followed successfully.';
             $state = 'followed';
+
+            // --- [NOTIFICATION] ---
+            // Notify the user being followed ($user)
+            $user->notify(new UserActionNotification(
+                "{$currentUser->name} started following you."
+            ));
+            // ----------------------
         }
 
         // Return JSON for AJAX
@@ -60,6 +74,8 @@ class ConnectionController extends Controller
 
             $message = 'User blocked.';
             $state = 'blocked';
+
+            // Note: We definitely DO NOT notify a user that they were blocked.
         }
 
         return back()->with('success', $message);

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Snippet;
+use App\Models\Tag;
 use App\Repositories\Interfaces\PostRepositoryInterface;
 use App\Repositories\Interfaces\SnippetRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PageController extends Controller
 {
@@ -38,13 +41,38 @@ class PageController extends Controller
         ]);
     }
 
-    public function latest()
+    public function latest(Request $request)
     {
-        return view('pages.latest');
+        $query = Snippet::with(['user', 'tags'])
+            ->withCount(['comments', 'likes'])
+            ->latest();
+        if ($request->has('filter')) {
+            if ($request->filter === 'questions') {
+                $query->whereHas('tags', function ($q) {
+                    $q->whereIn('name', ['question', 'help', 'issue']);
+                });
+            }
+        }
+        $activities = $query->paginate(10);
+        return view('pages.latest', compact('activities'));
     }
-    public function tags()
+    public function tags(Request $request)
     {
-        return view('pages.tags');
+        $search = $request->input('q');
+        $query = Tag::withCount('snippets');
+        $trendingTags = (clone $query)
+            ->orderByDesc('snippets_count')
+            ->take(2)
+            ->get();
+        if ($search) {
+            $query->where('name', 'LIKE', "%{$search}%");
+        }
+        $tags = $query
+            ->orderByDesc('snippets_count')
+            ->orderBy('name')
+            ->paginate(15); // Show 15 per page
+
+        return view('pages.tags', compact('tags', 'trendingTags', 'search'));
     }
     public function createSnippet()
     {
@@ -71,14 +99,20 @@ class PageController extends Controller
 
     public function profileNotifications()
     {
-        return view('pages.profile-pages.notifications');
+        $user = Auth::user();
+        $notifications = $user->notifications()->latest()->paginate(15);
+        return view('pages.profile-pages.notifications', compact('user', 'notifications'));
     }
-
     public function profileSnippets()
     {
-        return view('pages.profile-pages.my-snippets');
-    }
+        $user = Auth::user();
+        $snippets = $user->snippets()
+            ->withCount(['comments', 'likes'])
+            ->latest()
+            ->paginate(10);
 
+        return view('pages.profile-pages.my-snippets', compact('user', 'snippets'));
+    }
     public function profileSettings()
     {
         return view('pages.profile'); // Your existing settings page

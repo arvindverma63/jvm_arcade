@@ -6,8 +6,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-
 use Illuminate\Support\Facades\Storage;
+// 1. Import the Notification Class
+use App\Notifications\UserActionNotification;
 
 class ProfileController extends Controller
 {
@@ -18,11 +19,10 @@ class ProfileController extends Controller
         // Load counts
         $user->loadCount(['snippets', 'followers', 'comments', 'likes']);
 
-        // Calculate Reputation (Example logic: 10 pts per snippet, 2 per like, 5 per follower)
+        // Calculate Reputation (Example logic)
         $reputation = ($user->snippets_count * 10) + ($user->likes_count * 2) + ($user->followers_count * 5);
 
         // Fetch Recent Activity (Merge Snippets and Comments)
-        // This is a simple way to combine activity streams
         $snippets = $user->snippets()->latest()->take(5)->get()->map(function ($item) {
             $item->type = 'snippet_created';
             return $item;
@@ -38,6 +38,7 @@ class ProfileController extends Controller
 
         return view('pages.profile-pages.overview', compact('user', 'reputation', 'activities'));
     }
+
     public function show(User $user)
     {
         $currentUser = Auth::user();
@@ -59,8 +60,6 @@ class ProfileController extends Controller
         return view('pages.profile.show', compact('user', 'snippets', 'followers'));
     }
 
-    // In ProfileController.php
-
     public function updateImage(Request $request)
     {
         $request->validate([
@@ -69,6 +68,7 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+        $notified = false; // Flag to ensure we only notify once
 
         // Handle Avatar Upload
         if ($request->hasFile('avatar')) {
@@ -78,6 +78,7 @@ class ProfileController extends Controller
 
             $path = $request->file('avatar')->store('avatars', 'public');
             $user->avatar = '/storage/' . $path;
+            $notified = true;
         }
 
         // Handle Banner Upload (profile table)
@@ -93,9 +94,16 @@ class ProfileController extends Controller
                 [],
                 ['banner' => '/storage/' . $path]
             );
+            $notified = true;
         }
 
         $user->save();
+
+        // --- [NOTIFICATION] ---
+        if ($notified) {
+            $user->notify(new UserActionNotification("You updated your profile appearance."));
+        }
+        // ----------------------
 
         return back()->with('success', 'Profile image updated successfully.');
     }
@@ -119,7 +127,26 @@ class ProfileController extends Controller
             'theme' => ['required', 'string', 'in:dark,light'],
         ]);
 
-        $user->update($validated);
+        // 1. Update User Table (Name)
+        $user->update([
+            'name' => $validated['name']
+        ]);
+
+        // 2. Update Profile Table (Title, Bio, Lang, Theme)
+        // We use updateOrCreate in case the profile record doesn't exist yet
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'title' => $validated['title'],
+                'bio' => $validated['bio'],
+                'primary_language' => $validated['primary_language'],
+                'theme' => $validated['theme'],
+            ]
+        );
+
+        // --- [NOTIFICATION] ---
+        $user->notify(new UserActionNotification("Your profile details have been updated."));
+        // ----------------------
 
         return back()->with('success', 'Profile settings updated successfully.');
     }

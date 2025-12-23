@@ -14,7 +14,11 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('type');
-            $table->morphs('notifiable');
+
+            // CHANGE THIS LINE:
+            // $table->morphs('notifiable');  <-- Delete this
+            $table->uuidMorphs('notifiable'); // <-- Add this
+
             $table->text('data');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();

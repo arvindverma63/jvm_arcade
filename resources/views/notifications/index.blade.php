@@ -1,6 +1,4 @@
-@extends('layouts.app') {{-- Or whatever your main layout is named --}}
-
-@section('content')
+<x-app-layout>
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {{-- Header Section --}}
@@ -81,4 +79,4 @@
             {{ $notifications->links() }}
         </div>
     </div>
-@endsection
+</x-app-layout>

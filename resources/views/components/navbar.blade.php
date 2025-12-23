@@ -75,12 +75,12 @@
                                 </div>
                             @endforelse
                         </div>
+                        {{-- In your Navbar Blade file --}}
+                        <a href="{{ route('notifications.index') }}"
+                            class="block bg-slate-800/30 text-center py-2 text-xs text-slate-400 hover:text-white transition-colors border-t border-white/5">
+                            View all history
+                        </a>
                     </div>
-                    {{-- In your Navbar Blade file --}}
-                    <a href="{{ route('notifications.index') }}"
-                        class="block bg-slate-800/30 text-center py-2 text-xs text-slate-400 hover:text-white transition-colors border-t border-white/5">
-                        View all history
-                    </a>
                 </div>
             @endauth
 
