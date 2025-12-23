@@ -44,35 +44,44 @@
                     <img src="{{ Auth::user()->avatar ?? 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . Auth::user()->name }}"
                         class="w-full h-full object-cover">
                 </a>
+                @auth
+                    <div
+                        class="absolute right-0 top-full mt-2 w-48 bg-[#0f172a] border border-slate-700 rounded-xl shadow-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-right">
 
-                <div
-                    class="absolute right-0 top-full mt-2 w-48 bg-[#0f172a] border border-slate-700 rounded-xl shadow-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-right">
-                    <div class="px-4 py-3 border-b border-white/5 bg-slate-800/50">
-                        <p class="text-sm font-bold text-white truncate">{{ Auth::user()->name }}</p>
-                        <p class="text-xs text-slate-500 truncate">{{ Auth::user()->email }}</p>
+                        <div class="px-4 py-3 border-b border-white/5 bg-slate-800/50">
+                            <p class="text-sm font-bold text-white truncate">{{ Auth::user()->name }}</p>
+                            <p class="text-xs text-slate-500 truncate">{{ Auth::user()->email }}</p>
+                        </div>
+
+                        <div class="py-1">
+                            <a href="{{ route('profile.show', Auth::id()) }}"
+                                class="block px-4 py-2 text-sm text-slate-300 hover:bg-brand-accent/10 hover:text-brand-accent transition-colors">
+                                Profile Overview
+                            </a>
+                            <a href="{{ route('profile.update') }}"
+                                class="block px-4 py-2 text-sm text-slate-300 hover:bg-brand-accent/10 hover:text-brand-accent transition-colors">
+                                Settings
+                            </a>
+                        </div>
+
+                        <div class="border-t border-white/5 py-1">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
+                                    Log Out
+                                </button>
+                            </form>
+                        </div>
                     </div>
-
-                    <div class="py-1">
-                        <a href="{{ route('profile.show', Auth::id()) }}"
-                            class="block px-4 py-2 text-sm text-slate-300 hover:bg-brand-accent/10 hover:text-brand-accent transition-colors">
-                            Profile Overview
+                @else
+                    <div class="absolute right-0 top-full mt-2">
+                        <a href="{{ route('login') }}"
+                            class="inline-flex items-center justify-center px-5 py-2 text-sm font-medium text-white transition-colors duration-200 bg-slate-800 border border-slate-700 rounded-xl hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                            Log In
                         </a>
-                        <a href="{{ route('profile.update') }}"
-                            class="block px-4 py-2 text-sm text-slate-300 hover:bg-brand-accent/10 hover:text-brand-accent transition-colors">
-                            Settings
-                        </a>
                     </div>
-
-                    <div class="border-t border-white/5 py-1">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit"
-                                class="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
-                                Log Out
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                @endauth
             </div>
         </div>
     </div>
