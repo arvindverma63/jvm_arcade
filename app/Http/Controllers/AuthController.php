@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Profile;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
-use App\Models\User;
 use Illuminate\Support\Str;
+use App\Notifications\UserActionNotification;
 
 class AuthController extends Controller
 {
-    // 1. Redirect to Provider (Google/GitHub)
     public function redirectToProvider($provider)
     {
         return Socialite::driver($provider)->redirect();
@@ -31,34 +31,40 @@ class AuthController extends Controller
             ->first();
 
         if (!$user) {
-            // Create new user if they don't exist
+            // --- NEW USER REGISTRATION ---
             $user = User::create([
-                'name' => $socialUser->getName() ?? $socialUser->getNickname(), // GitHub often uses nickname
+                'name' => $socialUser->getName() ?? $socialUser->getNickname(),
                 'email' => $socialUser->getEmail(),
                 "{$provider}_id" => $socialUser->getId(),
                 'avatar' => $socialUser->getAvatar(),
-                'password' => null, // No password needed
+                'password' => null,
             ]);
 
             Profile::create([
                 'user_id' => $user->id,
-                'title' => 'Novice Developer', // Default title
+                'title' => 'Novice Developer',
                 'reputation' => 0,
             ]);
+
+            // [NOTIFICATION] Send Welcome Notification
+            $user->notify(new UserActionNotification("Welcome to the community, {$user->name}! Setup your profile to get started."));
         } else {
+            // --- EXISTING USER LOGIN ---
+
             // Update existing user with latest info
             $user->update([
                 "{$provider}_id" => $socialUser->getId(),
                 'avatar' => $socialUser->getAvatar(),
             ]);
+
         }
 
-        Auth::login($user, true); // true = "Remember Me"
+        Auth::login($user, true);
 
         return redirect()->route('home');
     }
 
-    // 3. Show Login Page (Now just buttons)
+    // 3. Show Login Page
     public function showLogin()
     {
         return view('auth.login');

@@ -26,11 +26,58 @@
             <button class="md:hidden text-slate-400 hover:text-white">
                 <i class="ph ph-magnifying-glass text-xl"></i>
             </button>
-            <button class="relative text-slate-400 hover:text-white transition-colors">
-                <i class="ph ph-bell text-xl"></i>
-                <span
-                    class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-brand-java rounded-full border-2 border-brand-dark"></span>
-            </button>
+
+            @auth
+                <div class="relative group">
+                    <button class="relative text-slate-400 hover:text-white transition-colors pt-1">
+                        <i class="ph ph-bell text-xl"></i>
+
+                        {{-- Dynamic Red Badge --}}
+                        @if (auth()->user()->unreadNotifications->count() > 0)
+                            <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-accent opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-accent"></span>
+                            </span>
+                        @endif
+                    </button>
+
+                    {{-- Notification Dropdown (Appears on Hover) --}}
+                    <div
+                        class="absolute right-0 top-full mt-2 w-80 bg-[#0f172a] border border-slate-700 rounded-xl shadow-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-right">
+
+                        {{-- Header --}}
+                        <div class="px-4 py-3 border-b border-white/5 bg-slate-800/50 flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-white">Notifications</h3>
+                            @if (auth()->user()->unreadNotifications->count() > 0)
+                                <a href="{{ route('notifications.readAll') }}"
+                                    class="text-xs text-brand-accent hover:text-white transition-colors cursor-pointer">
+                                    Mark read
+                                </a>
+                            @endif
+                        </div>
+
+                        {{-- List --}}
+                        <div class="max-h-64 overflow-y-auto">
+                            @forelse(auth()->user()->unreadNotifications as $notification)
+                                <div
+                                    class="block px-4 py-3 border-b border-slate-700/50 hover:bg-slate-800/50 transition-colors">
+                                    <p class="text-sm text-slate-300">
+                                        {{ $notification->data['message'] ?? 'New Notification' }}
+                                    </p>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        {{ $notification->created_at->diffForHumans() }}
+                                    </p>
+                                </div>
+                            @empty
+                                <div class="px-4 py-6 text-center text-slate-500">
+                                    <p class="text-sm">No new notifications</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            @endauth
 
             <a href="{{ route('snippets.create') }}"
                 class="hidden sm:flex bg-brand-accent hover:bg-amber-600 text-brand-dark text-sm font-bold px-4 py-2 rounded-full transition-all shadow-lg shadow-amber-900/20 items-center gap-2">
@@ -41,22 +88,18 @@
             <div class="relative group">
                 @auth
                     {{-- SCENARIO A: User is Logged In --}}
-                    {{-- 1. The Avatar Image (Visible) --}}
                     <a href="{{ route('profile.show', Auth::id()) }}"
                         class="block w-9 h-9 rounded-full bg-slate-700 border border-slate-600 overflow-hidden cursor-pointer hover:ring-2 hover:ring-brand-accent transition-all">
                         <img src="{{ Auth::user()->avatar ?? 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . Auth::user()->name }}"
                             alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
                     </a>
 
-                    {{-- 2. The Dropdown Menu (Hidden until group-hover) --}}
                     <div
                         class="absolute right-0 top-full mt-2 w-48 bg-[#0f172a] border border-slate-700 rounded-xl shadow-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-right">
-
                         <div class="px-4 py-3 border-b border-white/5 bg-slate-800/50">
                             <p class="text-sm font-bold text-white truncate">{{ Auth::user()->name }}</p>
                             <p class="text-xs text-slate-500 truncate">{{ Auth::user()->email }}</p>
                         </div>
-
                         <div class="py-1">
                             <a href="{{ route('profile.show', Auth::id()) }}"
                                 class="block px-4 py-2 text-sm text-slate-300 hover:bg-brand-accent/10 hover:text-brand-accent transition-colors">
@@ -67,7 +110,6 @@
                                 Settings
                             </a>
                         </div>
-
                         <div class="border-t border-white/5 py-1">
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
