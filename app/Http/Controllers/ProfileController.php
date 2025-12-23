@@ -64,15 +64,14 @@ class ProfileController extends Controller
     public function updateImage(Request $request)
     {
         $request->validate([
-            'avatar' => 'nullable|image|max:2048', // Max 2MB
-            'banner' => 'nullable|image|max:4096', // Max 4MB
+            'avatar' => 'nullable|image|max:2048',
+            'banner' => 'nullable|image|max:4096',
         ]);
 
         $user = $request->user();
 
         // Handle Avatar Upload
         if ($request->hasFile('avatar')) {
-            // Delete old avatar if it exists and isn't a default URL
             if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
                 Storage::disk('public')->delete(str_replace('/storage/', '', $user->avatar));
             }
@@ -81,20 +80,26 @@ class ProfileController extends Controller
             $user->avatar = '/storage/' . $path;
         }
 
-        // Handle Banner Upload
+        // Handle Banner Upload (profile table)
         if ($request->hasFile('banner')) {
-            if ($user->banner && !str_starts_with($user->banner, 'http')) {
-                Storage::disk('public')->delete(str_replace('/storage/', '', $user->banner));
+            if ($user->profile && $user->profile->banner && !str_starts_with($user->profile->banner, 'http')) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $user->profile->banner));
             }
 
             $path = $request->file('banner')->store('banners', 'public');
-            $user->profile->banner = '/storage/' . $path;
+
+            // Create profile if missing, then update banner
+            $user->profile()->updateOrCreate(
+                [],
+                ['banner' => '/storage/' . $path]
+            );
         }
 
         $user->save();
 
         return back()->with('success', 'Profile image updated successfully.');
     }
+
     public function edit()
     {
         return view('pages.profile', [
