@@ -116,6 +116,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/search', [SearchController::class, 'index'])->name('search');
     Route::get('/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');
 
+    // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
+    Route::get('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
     Route::prefix('profile')->name('profile.')->group(function () {
         // My Snippets List
         Route::get('/snippets', [SnippetController::class, 'index'])->name('snippets'); // Used in sidebar as route('profile.snippets')
@@ -129,11 +135,5 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', function () {
             return redirect()->route('profile.show', Auth::id());
         })->name('overview');
-
-        // Notification Routes
-        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-        Route::get('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
-        Route::get('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
-        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     });
 });
