@@ -39,12 +39,16 @@
             </a>
 
             <div class="relative group">
-                <a href="{{ route('profile.show', Auth::id()) }}"
-                    class="block w-9 h-9 rounded-full bg-slate-700 border border-slate-600 overflow-hidden cursor-pointer hover:ring-2 hover:ring-brand-accent transition-all">
-                    <img src="{{ Auth::user()->avatar ?? 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . Auth::user()->name }}"
-                        class="w-full h-full object-cover">
-                </a>
                 @auth
+                    {{-- SCENARIO A: User is Logged In --}}
+                    {{-- 1. The Avatar Image (Visible) --}}
+                    <a href="{{ route('profile.show', Auth::id()) }}"
+                        class="block w-9 h-9 rounded-full bg-slate-700 border border-slate-600 overflow-hidden cursor-pointer hover:ring-2 hover:ring-brand-accent transition-all">
+                        <img src="{{ Auth::user()->avatar ?? 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . Auth::user()->name }}"
+                            alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
+                    </a>
+
+                    {{-- 2. The Dropdown Menu (Hidden until group-hover) --}}
                     <div
                         class="absolute right-0 top-full mt-2 w-48 bg-[#0f172a] border border-slate-700 rounded-xl shadow-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-right">
 
@@ -75,12 +79,11 @@
                         </div>
                     </div>
                 @else
-                    <div class="absolute right-0 top-full mt-2">
-                        <a href="{{ route('login') }}"
-                            class="inline-flex items-center justify-center px-5 py-2 text-sm font-medium text-white transition-colors duration-200 bg-slate-800 border border-slate-700 rounded-xl hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-                            Log In
-                        </a>
-                    </div>
+                    {{-- SCENARIO B: User is Guest --}}
+                    <a href="{{ route('login') }}"
+                        class="inline-flex items-center justify-center px-5 py-2 text-sm font-medium text-white transition-colors duration-200 bg-slate-800 border border-slate-700 rounded-xl hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                        Log In
+                    </a>
                 @endauth
             </div>
         </div>
