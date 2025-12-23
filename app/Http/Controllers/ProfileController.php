@@ -88,7 +88,7 @@ class ProfileController extends Controller
             }
 
             $path = $request->file('banner')->store('banners', 'public');
-            $user->banner = '/storage/' . $path;
+            $user->profile->banner = '/storage/' . $path;
         }
 
         $user->save();
